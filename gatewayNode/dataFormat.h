@@ -1,5 +1,5 @@
 #define MT_TEMP 0
-#define MT_HUM 1
+#define MT_HUMI 1
 #define MT_LIGHT 2
 #define MT_MOTION 3
 
