@@ -1,12 +1,8 @@
-#define MT_TEMP 0
-#define MT_HUMI 1
-#define MT_LIGHT 2
-#define MT_MOTION 3
-
 typedef struct {
   byte nodeId :5;
-  byte sensorId :4;
-  byte measureType: 5;
-  int payload;
+  int temperature :10;
+  byte humidity :7;
+  byte brightness;
+  boolean presence;
 } Measure;
 

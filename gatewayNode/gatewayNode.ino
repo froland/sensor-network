@@ -2,7 +2,7 @@
 #include "dataFormat.h"
 
 void setup() {
-  Serial.begin(57600);
+  Serial.begin(9600);
   rf12_configSilent();
 }
 
@@ -11,11 +11,13 @@ void loop() {
     Measure measure = *(Measure*) rf12_data;
     Serial.print(measure.nodeId, DEC);
     Serial.print(';');
-    Serial.print(measure.sensorId, DEC);
+    Serial.print(measure.temperature, DEC);
     Serial.print(';');
-    Serial.print(measure.measureType, DEC);
+    Serial.print(measure.humidity, DEC);
     Serial.print(';');
-    Serial.print(measure.payload);
+    Serial.print(measure.brightness, DEC);
+    Serial.print(';');
+    Serial.print(measure.presence, DEC);
     Serial.println();
   }
 }

@@ -6,7 +6,7 @@
 #define PIR_PORT 4
 
 #define SERIAL_DELAY 2
-#define LOOP_DELAY 10000
+#define LOOP_DELAY 60000
 
 typedef struct {
   byte humi :7; // humidity [0..100]%
@@ -14,7 +14,6 @@ typedef struct {
 } EnvMeas;
 
 Measure measure;
-EnvMeas envMeasure;
 PortI2C hyti2cport (HYT131_PORT);
 HYT131 hyt131 (hyti2cport);
 Port ldr(LDR_PORT);
@@ -25,26 +24,22 @@ ISR(WDT_vect) { Sleepy::watchdogEvent(); }
 static void measureTempAndHumidity() {
   int humi, temp;
   hyt131.reading(temp, humi);
-  envMeasure.humi = humi/10;
-  envMeasure.temp = temp;
+  measure.temperature = temp;
+  measure.humidity = humi/10;
 }
 
-static byte measureLight() {
+static void measureLight() {
   ldr.digiWrite2(1);
   byte light = ~ ldr.anaRead() >> 2;
   ldr.digiWrite2(0);
-  return light;
+  measure.brightness = light;
 }
 
-static boolean measurePresence() {
-  return pir.digiRead();
+static void measurePresence() {
+  measure.presence = pir.digiRead();
 }
 
-void sendMeasure(byte sensorId, byte measureType, int payload) {
-  measure.sensorId = sensorId;
-  measure.measureType = measureType;
-  measure.payload = payload;
-  
+void sendMeasure() {
   rf12_sendNow(0, &measure, sizeof (Measure));
   rf12_sendWait(2);
 }
@@ -56,15 +51,11 @@ void setup() {
 }
 
 void loop() {
-  rf12_sleep(RF12_WAKEUP);
   measureTempAndHumidity();
-  sendMeasure(0, MT_TEMP, envMeasure.temp);
-  sendMeasure(1, MT_HUMI, envMeasure.humi);
-  
-  sendMeasure(2, MT_LIGHT, measureLight());
-  
-  sendMeasure(3, MT_MOTION, measurePresence());
-  
+  measureLight();
+  measurePresence();
+  rf12_sleep(RF12_WAKEUP);
+  sendMeasure();
   rf12_sleep(RF12_SLEEP);
   Sleepy::loseSomeTime(LOOP_DELAY);
 }
